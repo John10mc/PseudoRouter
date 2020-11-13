@@ -2,6 +2,7 @@ import math
 import pandas as pd
 import sys
 import networkx
+import matplotlib.pyplot as plt
 
 class Router():
     
@@ -82,30 +83,36 @@ class Graph():
     def __init__(self):
         self.graph = {}
         self.vertices = set()
-        self.display = networkx.Graph()
 
     def add_neighbour(self, src, dest, cost):
         if src not in self.graph:
             self.graph[src] = {}
             self.graph[src][dest] = cost
-            self.display.add_edge(src, dest, weight=cost)
+
         else:
-            self.display.add_edge(src, dest, weight=cost)
             self.graph[src][dest] = cost
+
         if dest not in self.graph:
-            self.display.add_edge(src, dest, weight=cost)
             self.graph[dest] = {}
             self.graph[dest][src] = cost
+
         else:
-            self.display.add_edge(src, dest, weight=cost)
             self.graph[dest][src] = cost
             self.vertices.add(src)
             self.vertices.add(dest)
 
-    def print_graph(self):
-        for key in self.graph:
-            for node in self.graph[key]:
-                print(key, "->", node, "=", self.graph[key][node])
+    def display_graph(self):
+        display = networkx.Graph()
+        for vertex in self.vertices:
+            display.add_node(vertex)
+
+        for src in self.graph:
+            for dest in self.graph[src]:
+                display.add_edge(src, dest)
+
+        networkx.draw(display, with_labels=True, node_size=500, node_color='red')
+        plt.savefig("path_graph1.png")
+        plt.show()
     
 
 def main():
@@ -120,12 +127,12 @@ def main():
     graph.add_neighbour("d", "e", 6)
     graph.add_neighbour("e", "f", 9)
     graph.add_neighbour("c", "g", 6)
-    #graph.print_graph()
     router = Router("a", graph)
     router_two = Router("b", graph)
     router_two.print_routing_table()
     router.remove_router("c")
     router_two.print_routing_table()
+    graph.display_graph()
     # router.get_path("f")
     #router.print_routing_table()
     # router.remove_router("c")
