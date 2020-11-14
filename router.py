@@ -13,7 +13,7 @@ class Router():
     def get_path(self, router_name):
         vertices = self.get_distances()
 
-        print("Start: {}\nEnd: {}\nPath: {}\nCost: {}".format(self.name, router_name, "->".join(vertices[router_name]["previous_vertices"]), vertices[router_name]["shortest_distance"]))
+        print("Start: {}\nEnd: {}\nPath: {}\nCost: {}".format(self.name, router_name, "->".join(vertices[router_name]["shortest_path"]), vertices[router_name]["shortest_distance"]))
 
     def print_routing_table(self):
         vertices = self.get_distances()
@@ -47,7 +47,6 @@ class Router():
         self.print_routing_table()
 
     def get_distances(self):
-        #print(self.connection.graph)
         visited = []
         paths = {self.name:{"shortest_distance": 0,
                                "shortest_path": self.name}}
@@ -83,8 +82,9 @@ class Graph():
     def __init__(self):
         self.graph = {}
         self.vertices = set()
+        self.isBidirectional = True
 
-    def add_neighbour(self, src, dest, cost):
+    def add_edge(self, src, dest, cost):
         if src not in self.graph:
             self.graph[src] = {}
             self.graph[src][dest] = cost
@@ -92,50 +92,64 @@ class Graph():
         else:
             self.graph[src][dest] = cost
 
-        if dest not in self.graph:
-            self.graph[dest] = {}
-            self.graph[dest][src] = cost
+        if self.isBidirectional:
+            if dest not in self.graph:
+                self.graph[dest] = {}
+                self.graph[dest][src] = cost
 
-        else:
-            self.graph[dest][src] = cost
-            self.vertices.add(src)
-            self.vertices.add(dest)
+            else:
+                self.graph[dest][src] = cost
+        self.vertices.add(src)
+        self.vertices.add(dest)
 
     def display_graph(self):
-        display = networkx.Graph()
+        display = networkx.DiGraph()
         for vertex in self.vertices:
             display.add_node(vertex)
 
         for src in self.graph:
             for dest in self.graph[src]:
-                display.add_edge(src, dest)
+                display.add_edge(src, dest, weight=self.graph[src][dest])
 
-        networkx.draw(display, with_labels=True, node_size=500, node_color='red')
-        plt.savefig("path_graph1.png")
-        plt.show()
-    
+        while True:
+            pos = networkx.planar_layout(display)
+            labels = networkx.get_edge_attributes(display, "weight")
+            networkx.draw(display, pos, with_labels=True, node_size=500, node_color="red", arrowsize=15)
+            networkx.draw_networkx_edge_labels(display, pos, edge_labels=labels)
+
+            plt.savefig("path_graph1.png")
+            plt.show(block=False)
+            plt.pause(.1)
+            i = input("Push enter to continue")
+            plt.clf()
+            if not i:
+                break
 
 def main():
     graph = Graph()
-    graph.add_neighbour("a", "b", 7)
-    graph.add_neighbour("a", "c", 9)
-    graph.add_neighbour("a", "f", 14)
-    graph.add_neighbour("b", "c", 10)
-    graph.add_neighbour("b", "d", 15)
-    graph.add_neighbour("c", "d", 11)
-    graph.add_neighbour("c", "f", 2)
-    graph.add_neighbour("d", "e", 6)
-    graph.add_neighbour("e", "f", 9)
-    graph.add_neighbour("c", "g", 6)
+    #graph.isBidirectional = False
+
+    graph.add_edge("a", "b", 7)
+    graph.add_edge("a", "c", 9)
+    graph.add_edge("a", "f", 14)
+    graph.add_edge("b", "c", 10)
+    graph.add_edge("b", "d", 15)
+    graph.add_edge("c", "d", 11)
+    graph.add_edge("c", "f", 2)
+    graph.add_edge("c", "g", 6)
+    graph.add_edge("d", "e", 6)
+    graph.add_edge("e", "f", 9)
+
     router = Router("a", graph)
+    router.get_path("f")
+    router.print_routing_table()
+    graph.display_graph()
+
     router_two = Router("b", graph)
-    router_two.print_routing_table()
     router.remove_router("c")
     router_two.print_routing_table()
     graph.display_graph()
-    # router.get_path("f")
-    #router.print_routing_table()
-    # router.remove_router("c")
+
 
 if __name__ == '__main__':
     main()
