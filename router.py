@@ -128,51 +128,82 @@ class Graph():
     # add an edge to the graph
     def add_edge(self, src, dest, cost):
 
-        # check to see if the source router is in the graph
+        # check to see if src is already a key in the dict
         if src not in self.graph:
 
-            # 
+            # add the src as a key in the graph dict and let its value be a dict
             self.graph[src] = {}
+            # in the src dict add the dest as a key and set its value to the cost passed into the arguement
             self.graph[src][dest] = cost
 
+        # no need to add the src as a key so just add the dest and cost to the src dict
         else:
             self.graph[src][dest] = cost
 
+        # graph will become bidirectional if isBidirectional is True
         if self.isBidirectional:
+            # check to see if dest is already a key in the dict
             if dest not in self.graph:
+                # add the dest as a key in the graph dict and let its value be a dict
                 self.graph[dest] = {}
+                # in the dest dict add the dest as a key and set its value to the cost passed into the arguement
                 self.graph[dest][src] = cost
 
+            # no need to add the src as a key so just add the dest and cost to the src dict
             else:
                 self.graph[dest][src] = cost
+        # add the source and destination into vertices to repesent that they are both routers in the graph
         self.vertices.add(src)
         self.vertices.add(dest)
 
+    # method used to display the graph as a graphic
     def display_graph(self):
+
+        # create a directed graph
         display = networkx.DiGraph()
+
+        #loop through all the routers and add them as a node in the directed graph
         for vertex in self.vertices:
             display.add_node(vertex)
 
+        # loop through all the keys(sources) dict in the graph dict and add the src - dest as an edge and the cost as a lable to the directed graph
         for src in self.graph:
             for dest in self.graph[src]:
                 display.add_edge(src, dest, weight=self.graph[src][dest])
 
+        # while loop to wait for the user to hit enter to continue
         while True:
+
+            # position the nodes without edge intersections
             pos = networkx.planar_layout(display)
+
+            # lable the edges with the cost from src to dest
             labels = networkx.get_edge_attributes(display, "weight")
+
+            # draw the nodes of the graphs based on the position defined earlier
             networkx.draw(display, pos, with_labels=True, node_size=500, node_color="red", arrowsize=15)
+
+            # draw the edges of the graph based on the position defined earlier
             networkx.draw_networkx_edge_labels(display, pos, edge_labels=labels)
 
-            plt.savefig("path_graph1.png")
+            # display the graph and allow the program to continue
             plt.show(block=False)
+
+            # pause the program execution so that the graphice can be rendered
             plt.pause(.1)
             i = input("Push enter to continue")
+
+            # clear the graphic
             plt.clf()
+
+            # break the loop when input is provided
             if not i:
                 break
 
 def main():
     graph = Graph()
+
+    ### Uncomment the line below to enable unidirectional graph ###
     #graph.isBidirectional = False
 
     graph.add_edge("a", "b", 7)
